@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SparkSphere · next‑gen crowdfunding</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for advanced statistics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            transition: background 0.2s, color 0.2s;
+            padding-bottom: 70px; /* Space for mobile nav */
+        }
+        
+        /* dark theme (advanced toggle) */
+        body.dark {
+            background: #121212;
+            color: #e0e0e0;
+        }
+        body.dark .navbar,
+        body.dark .project-card,
+        body.dark .control-panel,
+        body.dark .chart-card,
+        body.dark .leaderboard-card,
+        body.dark .simulator-panel,
+        body.dark .stats-badge,
+        body.dark .filter-btn,
+        body.dark .recommendation-card,
+        body.dark .mobile-nav,
+        body.dark .favorites-panel,
+        body.dark .profile-panel {
+            background: #1e1e1e;
+            color: #e0e0e0;
+            border-color: #333;
+        }
+        body.dark .project-creator,
+        body.dark .goal,
+        body.dark .meta,
+        body.dark .project-desc,
+        body.dark .project-social input {
+            color: #aaa;
+            background: #2a2a2a;
+        }
+        
+        .navbar {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            text-align: center;
+            padding: 120px 20px 60px;
+            margin-bottom: 40px;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        body.dark .section-title {
+            color: #e0e0e0;
+        }
+        
+        /* control panel */
+        .control-panel {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 60px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .filter-btn {
+            padding: 8px 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: #2d3748;
+        }
+        .filter-btn.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 6px 12px rgba(37,99,235,0.2);
+        }
+        .filter-btn i {
+            margin-right: 6px;
+        }
+        .search-wrapper {
+            display: flex;
+            align-items: center;
+            background: #f1f5f9;
+            border-radius: 40px;
+            padding: 4px 4px 4px 20px;
+            min-width: 260px;
+        }
+        .search-wrapper i {
+            color: #64748b;
+        }
+        .search-wrapper input {
+            border: none;
+            background: transparent;
+            padding: 12px 12px 12px 8px;
+            font-size: 1rem;
+            width: 100%;
+            outline: none;
+        }
+        .sort-select {
+            padding: 12px 24px 12px 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            background: white;
+            font-size: 0.95rem;
+            cursor: pointer;
+            outline: none;
+            color: #1e293b;
+            font-weight: 500;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+        .stats-badge {
+            background: #e6f0ff;
+            border-radius: 40px;
+            padding: 8px 22px;
+            font-weight: 500;
+            color: #1e4ba0;
+        }
+        .stats-badge i {
+            margin-right: 6px;
+            color: #2563eb;
+        }
+
+        /* dark toggle button */
+        .theme-toggle {
+            background: #e6f0ff;
+            border: none;
+            border-radius: 40px;
+            padding: 10px 18px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #1e293b;
+        }
+
+        /* gamification badges in navbar */
+        .gamification-badges {
+            display: flex;
+            gap: 5px;
+        }
+        .level-badge {
+            background: #fbbf24;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #1e293b;
+        }
+        .backed-badge {
+            background: #2563eb;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        /* projects grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .project-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(37,99,235,0.2);
+        }
+        
+        .project-image {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .project-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* favorite heart icon */
+        .favorite-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+            transition: all 0.2s;
+        }
+        .favorite-btn i {
+            color: #ff6b6b;
+            font-size: 1.2rem;
+        }
+        .favorite-btn.active i {
+            color: #ff3b3b;
+            font-weight: 900;
+        }
+        
+        /* trending/hot badges */
+        .trending-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff6b6b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(255,107,107,0.4);
+        }
+        .trending-badge i {
+            margin-right: 4px;
+        }
+        
+        .project-content {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .project-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        body.dark .project-title { color: #f0f0f0; }
+        
+        .hot-tag {
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .trending-tag {
+            background: #f59e0b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .project-creator {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .project-desc {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            align-self: flex-start;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin: 15px 0 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2563eb, #7c3aed);
+            border-radius: 4px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .raised {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        
+        .goal {
+            color: #666;
+        }
+        
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        body.dark .meta { border-color: #333; }
+        
+        .meta i {
+            color: #2563eb;
+            margin-right: 5px;
+        }
+
+        /* funding milestones */
+        .milestones {
+            margin: 15px 0;
+            padding: 10px 0;
+            border-top: 1px dashed #2563eb;
+            border-bottom: 1px dashed #2563eb;
+        }
+        .milestone-track {
+            display: flex;
+            gap: 5px;
+            margin: 8px 0;
+        }
+        .milestone-bar {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            transition: background 0.3s;
+        }
+        .milestone-text {
+            font-size: 0.75rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* reward tiers */
+        .reward-tiers {
+            margin: 15px 0;
+            padding-top: 10px;
+            border-top: 1px dashed #2563eb;
+        }
+        .tier-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        .tier-item {
+            background: #e6f0ff;
+            padding: 5px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        body.dark .tier-item {
+            background: #2a2a2a;
+        }
+
+        /* project timeline */
+        .project-timeline {
+            margin: 15px 0;
+        }
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .timeline-track {
+            display: flex;
+            height: 4px;
+            gap: 2px;
+        }
+        .timeline-segment {
+            flex: 1;
+            border-radius: 2px;
+        }
+
+        /* project social (updates & comments) */
+        .project-social {
+            margin: 15px 0;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        body.dark .project-social {
+            border-color: #333;
+        }
+        .updates-header {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .updates-list {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+        body.dark .updates-list {
+            background: #2a2a2a;
+        }
+        .update-item {
+            margin-bottom: 5px;
+        }
+        .comment-input-group {
+            display: flex;
+            margin-top: 8px;
+            gap: 5px;
+        }
+        .comment-input {
+            flex: 1;
+            padding: 6px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background: white;
+        }
+        .comment-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        /* pledge strip */
+        .pledge-strip {
+            background: #f8fafd;
+            margin-top: 12px;
+            padding: 12px 0 4px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        body.dark .pledge-strip { background: #2a2a2a; }
+        .pledge-strip button {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-weight: 600;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.1s ease;
+            font-size: 0.9rem;
+        }
+        body.dark .pledge-strip button {
+            background: #333;
+            color: #eee;
+            border-color: #555;
+        }
+        .pledge-strip button:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: white;
+        }
+        .pledge-strip span {
+            font-size: 0.9rem;
+            color: #0f3b7a;
+            font-weight: 500;
+        }
+        .pledge-strip i {
+            color: #2563eb;
+            margin-right: 6px;
+        }
+
+        /* recommendations section */
+        .recommendations {
+            margin: 50px 0;
+        }
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .recommendation-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+        .recommendation-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(37,99,235,0.2);
+        }
+        .recommendation-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        .recommendation-title {
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        .recommendation-amount {
+            color: #2563eb;
+            font-weight: bold;
+        }
+        .view-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 5px 15px;
+            margin-top: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* stats dashboard */
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 50px 0;
+        }
+        .chart-card, .leaderboard-card, .simulator-panel {
+            background: white;
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        .chart-card h3, .leaderboard-card h3, .simulator-panel h3 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        canvas { max-height: 250px; margin-bottom: 10px; }
+
+        .leaderboard-list {
+            list-style: none;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9e9e9;
+            font-weight: 500;
+        }
+        body.dark .leaderboard-item { border-color: #333; }
+        .leaderboard-rank {
+            background: #2563eb;
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            margin-right: 12px;
+        }
+        .leaderboard-meta {
+            color: #0f3b7a;
+            font-weight: 700;
+        }
+
+        .simulator-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .simulator-controls select, .simulator-controls input {
+            padding: 12px 18px;
+            border-radius: 40px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            flex: 1;
+        }
+        .simulator-result {
+            background: #e6f0ff;
+            border-radius: 40px;
+            padding: 18px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #1e4ba0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .simulate-btn {
+            background: #2563eb;
+            border: none;
+            border-radius: 40px;
+            padding: 14px 28px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        /* mobile navigation */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .mobile-nav-item {
+            text-align: center;
+            color: #666;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mobile-nav-item.active {
+            color: #2563eb;
+        }
+        .mobile-nav-item i {
+            font-size: 1.3rem;
+            color: #2563eb;
+        }
+        .mobile-nav-item span {
+            display: block;
+            font-size: 0.7rem;
+        }
+
+        /* favorites and profile panels */
+        .favorites-panel, .profile-panel {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            margin: 40px 0;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .favorites-panel.active, .profile-panel.active {
+            display: block;
+        }
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .profile-stat-card {
+            background: #e6f0ff;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        body.dark .profile-stat-card {
+            background: #2a2a2a;
+        }
+        .profile-stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        /* notification area */
+        #notificationArea {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 9999;
+        }
+        .notification {
+            background: white;
+            border-left: 4px solid #2563eb;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+        }
+        body.dark .notification {
+            background: #2a2a2a;
+            color: #e0e0e0;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* export button */
+        .export-btn {
+            background: #10b981 !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        /* mobile swipe */
+        @media (max-width: 768px) {
+            .project-card {
+                cursor: grab;
+                transition: transform 0.3s;
+            }
+            .project-card:active {
+                cursor: grabbing;
+                transform: scale(0.98);
+            }
+            .recommendations-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .favorites-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .profile-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .projects-grid { grid-template-columns: repeat(3, 1fr); }
+            .stats-dashboard { grid-template-columns: 1fr; }
+            .recommendations-grid { grid-template-columns: repeat(3, 1fr); }
+            .favorites-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        
+        @media (max-width: 768px) {
+            .projects-grid { grid-template-columns: repeat(2, 1fr); }
+            .recommendations-grid { grid-template-columns: repeat(2, 1fr); }
+            .favorites-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (max-width: 500px) {
+            .projects-grid { grid-template-columns: 1fr; }
+            .recommendations-grid { grid-template-columns: 1fr; }
+            .favorites-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar with theme toggle and gamification badges -->
+    <div class="navbar">
+        <div class="logo">SparkSphere</div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <div class="gamification-badges">
+                <span class="level-badge"><i class="fas fa-star"></i> Level 3</span>
+                <span class="backed-badge" id="backedCount"><i class="fas fa-trophy"></i> <span id="backedCountValue">0</span> backed</span>
+            </div>
+            <span><i class="fas fa-rocket" style="color:#2563eb;"></i> 28 live</span>
+            <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Dark</button>
+        </div>
+    </div>
+    
+    <!-- Hero Section -->
+    <div class="hero">
+        <h1>Where Ideas Get Funded</h1>
+        <p>Thousands of dreamers. Millions raised. Endless possibilities.</p>
+    </div>
+    
+    <div class="container">
+        <h2 class="section-title" id="mainTitle">All Projects (28)</h2>
+
+        <!-- Control panel with export button -->
+        <div class="control-panel">
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all"><i class="fas fa-layer-group"></i> All</button>
+                <button class="filter-btn" data-filter="Technology"><i class="fas fa-microchip"></i> Tech</button>
+                <button class="filter-btn" data-filter="Art"><i class="fas fa-palette"></i> Art</button>
+                <button class="filter-btn" data-filter="Music"><i class="fas fa-music"></i> Music</button>
+                <button class="filter-btn" data-filter="Film"><i class="fas fa-film"></i> Film</button>
+                <button class="filter-btn" data-filter="Charity"><i class="fas fa-hand-holding-heart"></i> Charity</button>
+                <button class="filter-btn" data-filter="Business"><i class="fas fa-briefcase"></i> Business</button>
+            </div>
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search projects...">
+            </div>
+            <select id="sortSelect" class="sort-select">
+                <option value="default">✨ default</option>
+                <option value="mostFunded">💰 most funded</option>
+                <option value="leastFunded">📉 least funded</option>
+                <option value="newest">🕒 newest (by id)</option>
+            </select>
+            <div class="stats-badge" id="counterDisplay"><i class="fas fa-bolt"></i> 28 / 28</div>
+            <button id="exportBtn" class="filter-btn export-btn"><i class="fas fa-download"></i> Export</button>
+        </div>
+
+        <!-- Main projects grid -->
+        <div class="projects-grid" id="projectsContainer"></div>
+
+        <!-- Favorites Panel (hidden by default) -->
+        <div class="favorites-panel" id="favoritesPanel">
+            <h2 style="font-size: 2rem; margin-bottom: 20px;">
+                <i class="fas fa-heart" style="color: #ff6b6b;"></i> Your Favorite Projects
+            </h2>
+            <div class="favorites-grid" id="favoritesGrid"></div>
+            <p id="noFavorites" style="text-align: center; color: #666; margin-top: 20px;">You haven't favorited any projects yet. Click the ❤️ on any project to add it here!</p>
+        </div>
+
+        <!-- Profile Panel (hidden by default) -->
+        <div class="profile-panel" id="profilePanel">
+            <h2 style="font-size: 2rem; margin-bottom: 20px;">
+                <i class="fas fa-user" style="color: #2563eb;"></i> Your Profile
+            </h2>
+            <div style="display: flex; align-items: center; gap: 30px; margin-bottom: 30px;">
+                <div style="background: #2563eb; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user" style="font-size: 3rem; color: white;"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.8rem;">Dua Khurram</h3>
+                    <p style="color: #666;">Member since March 2025</p>
+                </div>
+            </div>
+            <div class="profile-stats">
+                <div class="profile-stat-card">
+                    <div class="profile-stat-value" id="profileBackedCount">0</div>
+                    <div>Projects Backed</div>
+                </div>
+                <div class="profile-stat-card">
+                    <div class="profile-stat-value" id="profileFavCount">0</div>
+                    <div>Favorites</div>
+                </div>
+                <div class="profile-stat-card">
+                    <div class="profile-stat-value" id="profileTotalPledged">$0</div>
+                    <div>Total Pledged</div>
+                </div>
+            </div>
+            <h3 style="margin: 30px 0 20px;">Your Activity</h3>
+            <div id="userActivity" style="background: #f8f9fa; border-radius: 20px; padding: 20px;">
+                <p>No recent activity</p>
+            </div>
+        </div>
+
+        <!-- recommendations section -->
+        <div class="recommendations" id="recommendations">
+            <h3 style="font-size: 1.8rem; margin-bottom: 20px;">
+                <i class="fas fa-magic" style="color: #2563eb;"></i> You might also like
+            </h3>
+            <div class="recommendations-grid" id="recommendationsContainer"></div>
+        </div>
+
+        <!-- advanced stats dashboard -->
+        <div class="stats-dashboard" id="statsDashboard">
+            <!-- 1. funding distribution chart -->
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-pie"></i> Funding by category</h3>
+                <canvas id="categoryChart"></canvas>
+                <p style="text-align:center; color:#666;" id="chartUpdateHint">(live update with filter)</p>
+            </div>
+
+            <!-- 2. leaderboard: top 5 projects by backers -->
+            <div class="leaderboard-card">
+                <h3><i class="fas fa-trophy"></i> Top 5 by backers</h3>
+                <ul class="leaderboard-list" id="leaderboardList"></ul>
+            </div>
+
+            <!-- 3. funding simulator -->
+            <div class="simulator-panel" style="grid-column: span 2;">
+                <h3><i class="fas fa-flask"></i> Funding simulator & risk analysis</h3>
+                <div class="simulator-controls">
+                    <select id="simProjectSelect">
+                        <option value="">-- select project --</option>
+                    </select>
+                    <input type="number" id="simAmount" placeholder="additional funding ($)" value="5000" min="100" step="1000">
+                    <button class="simulate-btn" id="simulateBtn"><i class="fas fa-chart-line"></i> simulate</button>
+                </div>
+                <div id="simResult" class="simulator-result">
+                    <span>⚡ new total / goal %</span>
+                    <span id="simOutput">—</span>
+                </div>
+                <p style="margin-top:12px; font-size:0.95rem;"><i class="fas fa-lightbulb" style="color:#2563eb;"></i> Risk: if above 90% → low risk, below 30% → high risk</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- mobile navigation with working buttons -->
+    <div class="mobile-nav">
+        <div class="mobile-nav-item active" data-view="home" id="navHome">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="mobile-nav-item" data-view="search" id="navSearch">
+            <i class="fas fa-search"></i>
+            <span>Search</span>
+        </div>
+        <div class="mobile-nav-item" data-view="favorites" id="navFavorites">
+            <i class="fas fa-heart"></i>
+            <span>Favorites</span>
+        </div>
+        <div class="mobile-nav-item" data-view="profile" id="navProfile">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+
+    <!-- notification area -->
+    <div id="notificationArea"></div>
+    
+    <script>
+        // ----- ALL 28 PROJECTS -----
+        const projects = [
+            { id:1, title:'AI-Powered Health Watch', desc:'Smartwatch with AI health monitoring', goal:250000, current:187500, category:'Technology', creator:'Sarah Johnson', image:'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=600', backers:845, days:25 },
+            { id:2, title:'Solar Power Bank', desc:'Portable solar charger with fast charging', goal:50000, current:42300, category:'Technology', creator:'Mike Chen', image:'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=600', backers:234, days:18 },
+            { id:3, title:'Smart Home Hub Pro', desc:'Centralized AI control for smart devices', goal:120000, current:98700, category:'Technology', creator:'Alex Rivera', image:'https://images.unsplash.com/photo-1558089687-f282ffcbc126?w=600', backers:456, days:32 },
+            { id:4, title:'Wireless Earbuds Pro', desc:'Premium sound with active noise cancellation', goal:75000, current:68900, category:'Technology', creator:'Lisa Wong', image:'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=600', backers:567, days:12 },
+            { id:5, title:'3D Printer for Kids', desc:'Safe 3D printer for educational purposes', goal:80000, current:65400, category:'Technology', creator:'Tom Harris', image:'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=600', backers:345, days:28 },
+            { id:6, title:'Drone with Thermal Camera', desc:'Professional drone with thermal imaging', goal:180000, current:143200, category:'Technology', creator:'James Wilson', image:'https://images.unsplash.com/photo-1507582020474-9a35b7d455d9?w=600', backers:678, days:45 },
+            { id:7, title:'Robot Learning Kit', desc:'DIY robot kit for learning programming', goal:60000, current:52300, category:'Technology', creator:'Emily Brown', image:'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600', backers:289, days:22 },
+            { id:8, title:'Electric Skateboard', desc:'Eco-friendly commute with smart features', goal:95000, current:81200, category:'Technology', creator:'David Kim', image:'electric skate board.jpg', backers:432, days:15 },
+            { id:9, title:'Urban Mural Project', desc:'Transforming city walls with community art', goal:45000, current:38900, category:'Art', creator:'Maria Garcia', image:'https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=600', backers:178, days:20 },
+            { id:10, title:'Sculpture Garden', desc:'Interactive sculpture park', goal:120000, current:87600, category:'Art', creator:'Robert Taylor', image:'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600', backers:245, days:35 },
+            { id:11, title:'Digital Art Exhibition', desc:'Virtual reality art gallery', goal:35000, current:29800, category:'Art', creator:'Anna Lee', image:'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=600', backers:167, days:14 },
+            { id:12, title:'Handmade Pottery Studio', desc:'Community pottery studio', goal:40000, current:35600, category:'Art', creator:'Patricia Martinez', image:'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600', backers:198, days:26 },
+            { id:13, title:'Indie Album Recording', desc:'Debut album from emerging artist', goal:30000, current:26700, category:'Music', creator:'Sofia Rodriguez', image:'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=600', backers:223, days:19 },
+            { id:14, title:'Music Festival 2024', desc:'3-day music festival', goal:200000, current:156700, category:'Music', creator:'Marcus Williams', image:'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600', backers:890, days:60 },
+            { id:15, title:'Jazz Club Revival', desc:'Restoring historic jazz venue', goal:150000, current:123400, category:'Music', creator:'Diana King', image:'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=600', backers:567, days:42 },
+            { id:16, title:'Music School for Kids', desc:'Free music education', goal:80000, current:67800, category:'Music', creator:'John Thompson', image:'https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=600', backers:345, days:28 },
+            { id:17, title:'Documentary: Ocean Life', desc:'Underwater documentary', goal:95000, current:82300, category:'Film', creator:'Rachel Green', image:'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600', backers:456, days:33 },
+            { id:18, title:'Independent Feature Film', desc:'Drama about immigrant family', goal:180000, current:145600, category:'Film', creator:'Steven Park', image:'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=600', backers:678, days:48 },
+            { id:19, title:'Animation Short Film', desc:'Animated short about friendship', goal:40000, current:35600, category:'Film', creator:'Megan Fox', image:'https://images.unsplash.com/photo-1533488765986-dfa2a9939acd?w=600', backers:234, days:21 },
+            { id:20, title:'Web Series Pilot', desc:'Comedy series about startup life', goal:25000, current:21900, category:'Film', creator:'Kevin Hart', image:'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=600', backers:189, days:16 },
+            { id:21, title:'Homeless Shelter Renovation', desc:'Renovating shelter for 100+ people', goal:200000, current:167800, category:'Charity', creator:'Laura Chen', image:'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600', backers:934, days:38 },
+            { id:22, title:'Clean Water Initiative', desc:'Bringing clean water to villages', goal:120000, current:102300, category:'Charity', creator:'William Turner', image:'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=600', backers:789, days:29 },
+            { id:23, title:'Animal Rescue Center', desc:'Building shelter for rescued animals', goal:85000, current:73200, category:'Charity', creator:'Amy Adams', image:'https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=600', backers:567, days:24 },
+            { id:24, title:'Education for Girls', desc:'Scholarship program for girls', goal:150000, current:128900, category:'Charity', creator:'Nelson Mandela Jr', image:'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=600', backers:845, days:41 },
+            { id:25, title:'Eco-Friendly Store', desc:'Zero-waste grocery store', goal:90000, current:78400, category:'Business', creator:'Emma Watson', image:'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600', backers:345, days:27 },
+            { id:26, title:'Coffee Shop & Bookstore', desc:'Cozy cafe with reading space', goal:110000, current:96700, category:'Business', creator:'Ryan Reynolds', image:'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600', backers:456, days:31 },
+            { id:27, title:'Sustainable Fashion Brand', desc:'Ethical clothing from recycled materials', goal:130000, current:112300, category:'Business', creator:'Stella McCartney', image:'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600', backers:567, days:36 },
+            { id:28, title:'Urban Farming Initiative', desc:'Rooftop hydroponic farm', goal:140000, current:118900, category:'Business', creator:'Jamie Oliver', image:'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=600', backers:678, days:43 }
+        ];
+
+        // Sample updates and comments data
+        const projectUpdates = {};
+        projects.forEach(p => {
+            projectUpdates[p.id] = {
+                updates: ["🎉 Prototype ready!", "🔬 Testing phase started", "📦 New rewards added"],
+                comments: ["Great project!", "Can't wait for this!", "When does shipping start?"]
+            };
+        });
+
+        // User data
+        let userData = {
+            favorites: new Set(),
+            backedProjects: new Set(),
+            totalPledged: 0,
+            comments: []
+        };
+
+        // Load from localStorage if available
+        try {
+            const saved = localStorage.getItem('sparkSphereUser');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                userData.favorites = new Set(parsed.favorites || []);
+                userData.backedProjects = new Set(parsed.backedProjects || []);
+                userData.totalPledged = parsed.totalPledged || 0;
+                userData.comments = parsed.comments || [];
+            }
+        } catch (e) {
+            console.log('No saved data');
+        }
+
+        // Save user data
+        function saveUserData() {
+            const toSave = {
+                favorites: Array.from(userData.favorites),
+                backedProjects: Array.from(userData.backedProjects),
+                totalPledged: userData.totalPledged,
+                comments: userData.comments
+            };
+            localStorage.setItem('sparkSphereUser', JSON.stringify(toSave));
+            updateProfileAndBadges();
+        }
+
+        // Update profile and badges
+        function updateProfileAndBadges() {
+            document.getElementById('backedCountValue').textContent = userData.backedProjects.size;
+            document.getElementById('profileBackedCount').textContent = userData.backedProjects.size;
+            document.getElementById('profileFavCount').textContent = userData.favorites.size;
+            document.getElementById('profileTotalPledged').textContent = '$' + userData.totalPledged.toLocaleString();
+            
+            // Update level badge based on backed count
+            const level = Math.floor(userData.backedProjects.size / 2) + 1;
+            document.querySelector('.level-badge').innerHTML = `<i class="fas fa-star"></i> Level ${level}`;
+        }
+
+        // ---------- global state ----------
+        let currentFilter = 'all';
+        let currentSearch = '';
+        let currentSort = 'default';
+        let chartInstance = null;
+        let notificationInterval;
+        let currentView = 'home';
+
+        // DOM elements
+        const container = document.getElementById('projectsContainer');
+        const favoritesPanel = document.getElementById('favoritesPanel');
+        const profilePanel = document.getElementById('profilePanel');
+        const recommendationsDiv = document.getElementById('recommendations');
+        const statsDashboard = document.getElementById('statsDashboard');
+        const mainTitle = document.getElementById('mainTitle');
+
+        // Navigation functions
+        function showView(view) {
+            currentView = view;
+            
+            // Update mobile nav active state
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.getElementById(`nav${view.charAt(0).toUpperCase() + view.slice(1)}`).classList.add('active');
+
+            // Show/hide sections based on view
+            if (view === 'home') {
+                mainTitle.style.display = 'block';
+                document.querySelector('.control-panel').style.display = 'flex';
+                container.style.display = 'grid';
+                favoritesPanel.classList.remove('active');
+                profilePanel.classList.remove('active');
+                recommendationsDiv.style.display = 'block';
+                statsDashboard.style.display = 'grid';
+            } else if (view === 'search') {
+                mainTitle.style.display = 'block';
+                document.querySelector('.control-panel').style.display = 'flex';
+                container.style.display = 'grid';
+                favoritesPanel.classList.remove('active');
+                profilePanel.classList.remove('active');
+                recommendationsDiv.style.display = 'block';
+                statsDashboard.style.display = 'grid';
+                // Focus on search input
+                document.getElementById('searchInput').focus();
+            } else if (view === 'favorites') {
+                mainTitle.style.display = 'none';
+                document.querySelector('.control-panel').style.display = 'none';
+                container.style.display = 'none';
+                favoritesPanel.classList.add('active');
+                profilePanel.classList.remove('active');
+                recommendationsDiv.style.display = 'none';
+                statsDashboard.style.display = 'none';
+                renderFavorites();
+            } else if (view === 'profile') {
+                mainTitle.style.display = 'none';
+                document.querySelector('.control-panel').style.display = 'none';
+                container.style.display = 'none';
+                favoritesPanel.classList.remove('active');
+                profilePanel.classList.add('active');
+                recommendationsDiv.style.display = 'none';
+                statsDashboard.style.display = 'none';
+                updateProfileAndBadges();
+            }
+        }
+
+        // Navigation event listeners
+        document.getElementById('navHome').addEventListener('click', () => showView('home'));
+        document.getElementById('navSearch').addEventListener('click', () => showView('search'));
+        document.getElementById('navFavorites').addEventListener('click', () => showView('favorites'));
+        document.getElementById('navProfile').addEventListener('click', () => showView('profile'));
+
+        // Toggle favorite
+        function toggleFavorite(projectId, button) {
+            if (userData.favorites.has(projectId)) {
+                userData.favorites.delete(projectId);
+                button.classList.remove('active');
+                showNotification('💔 Removed from favorites');
+            } else {
+                userData.favorites.add(projectId);
+                button.classList.add('active');
+                showNotification('❤️ Added to favorites');
+            }
+            saveUserData();
+            if (currentView === 'favorites') {
+                renderFavorites();
+            }
+        }
+
+        // Render favorites
+        function renderFavorites() {
+            const grid = document.getElementById('favoritesGrid');
+            const noFavorites = document.getElementById('noFavorites');
+            
+            if (userData.favorites.size === 0) {
+                grid.innerHTML = '';
+                noFavorites.style.display = 'block';
+                return;
+            }
+
+            noFavorites.style.display = 'none';
+            
+            const favoriteProjects = projects.filter(p => userData.favorites.has(p.id));
+            let html = '';
+            favoriteProjects.forEach(p => {
+                html += `
+                    <div class="recommendation-card">
+                        <img src="${p.image}" alt="${p.title}">
+                        <div class="recommendation-title">${p.title}</div>
+                        <div class="recommendation-amount">$${p.current.toLocaleString()}</div>
+                        <button class="view-btn" onclick="scrollToProject(${p.id})">View Project</button>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+        }
+
+        // ----- helper: filtered projects -----
+        function getFilteredProjects() {
+            let filtered = projects.filter(p => {
+                if (currentFilter === 'all') return true;
+                return p.category === currentFilter;
+            });
+            if (currentSearch.trim() !== '') {
+                const term = currentSearch.toLowerCase();
+                filtered = filtered.filter(p => 
+                    p.title.toLowerCase().includes(term) ||
+                    p.creator.toLowerCase().includes(term) ||
+                    p.desc.toLowerCase().includes(term)
+                );
+            }
+            return filtered;
+        }
+
+        // ----- render projects with all new features -----
+        function renderProjects() {
+            let filtered = getFilteredProjects();
+
+            // sorting
+            if (currentSort === 'mostFunded') filtered.sort((a,b) => b.current - a.current);
+            else if (currentSort === 'leastFunded') filtered.sort((a,b) => a.current - b.current);
+            else if (currentSort === 'newest') filtered.sort((a,b) => b.id - a.id);
+            else filtered.sort((a,b) => a.id - b.id);
+
+            document.getElementById('counterDisplay').innerHTML = `<i class="fas fa-bolt"></i> ${filtered.length} / ${projects.length}`;
+
+            let html = '';
+            filtered.forEach(p => {
+                const percent = ((p.current / p.goal) * 100).toFixed(1);
+                const isHot = p.current / p.goal > 0.7;
+                const isTrending = p.backers > 500;
+                const projectData = projectUpdates[p.id] || { updates: [], comments: [] };
+                const isFavorited = userData.favorites.has(p.id);
+                
+                html += `<div class="project-card" data-id="${p.id}">
+                    <div class="project-image">
+                        <button class="favorite-btn ${isFavorited ? 'active' : ''}" onclick="toggleFavorite(${p.id}, this)">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="${p.image}" alt="${p.title}" loading="lazy">
+                        ${isHot ? '<span class="trending-badge"><i class="fas fa-fire"></i> HOT</span>' : ''}
+                    </div>
+                    <div class="project-content">
+                        <span class="category-badge">${p.category}</span>
+                        <h3 class="project-title">
+                            ${p.title}
+                            ${isHot ? '<span class="hot-tag"><i class="fas fa-fire"></i> HOT</span>' : ''}
+                            ${isTrending && !isHot ? '<span class="trending-tag"><i class="fas fa-chart-line"></i> TRENDING</span>' : ''}
+                        </h3>
+                        <div class="project-creator">by ${p.creator}</div>
+                        <div class="project-desc">${p.desc}</div>
+                        
+                        <!-- progress bar -->
+                        <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+                        
+                        <!-- funding milestones -->
+                        <div class="milestones">
+                            <div class="milestone-text">
+                                <span>🎯 $${(p.goal * 0.5).toLocaleString()}</span>
+                                <span>🎯 $${(p.goal * 0.75).toLocaleString()}</span>
+                                <span>🎯 $${p.goal.toLocaleString()}</span>
+                            </div>
+                            <div class="milestone-track">
+                                <div class="milestone-bar" style="background: ${p.current >= p.goal * 0.5 ? '#10b981' : '#e0e0e0'}"></div>
+                                <div class="milestone-bar" style="background: ${p.current >= p.goal * 0.75 ? '#10b981' : '#e0e0e0'}"></div>
+                                <div class="milestone-bar" style="background: ${p.current >= p.goal ? '#10b981' : '#e0e0e0'}"></div>
+                            </div>
+                            <div style="font-size:0.7rem; color:#666;">
+                                ${p.current >= p.goal * 0.5 ? '✓ 50% reached' : '⏳ 50% milestone'} | 
+                                ${p.current >= p.goal * 0.75 ? '✓ 75% reached' : '⏳ 75% milestone'}
+                            </div>
+                        </div>
+                        
+                        <!-- stats -->
+                        <div class="stats">
+                            <span class="raised">$${p.current.toLocaleString()}</span>
+                            <span class="goal">of $${p.goal.toLocaleString()}</span>
+                        </div>
+                        
+                        <!-- project timeline -->
+                        <div class="project-timeline">
+                            <div class="timeline-labels">
+                                <span>Concept</span>
+                                <span>Prototype</span>
+                                <span>Funding</span>
+                                <span>Production</span>
+                            </div>
+                            <div class="timeline-track">
+                                <div class="timeline-segment" style="background: #10b981;"></div>
+                                <div class="timeline-segment" style="background: #10b981;"></div>
+                                <div class="timeline-segment" style="background: #2563eb; position: relative;"></div>
+                                <div class="timeline-segment" style="background: #e0e0e0;"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- reward tiers -->
+                        <div class="reward-tiers">
+                            <div style="font-size:0.85rem; color:#2563eb; margin-bottom:8px;">
+                                <i class="fas fa-gift"></i> Reward Tiers
+                            </div>
+                            <div class="tier-grid">
+                                <div class="tier-item">$25 - Early bird</div>
+                                <div class="tier-item">$50 - Name in credits</div>
+                                <div class="tier-item">$100 - Limited edition</div>
+                                <div class="tier-item">$500 - VIP experience</div>
+                            </div>
+                        </div>
+                        
+                        <!-- meta info -->
+                        <div class="meta">
+                            <span><i class="far fa-clock"></i> ${p.days} days left</span>
+                            <span><i class="fas fa-users"></i> ${p.backers} backers</span>
+                        </div>
+                        
+                        <!-- project updates & comments -->
+                        <div class="project-social">
+                            <div class="updates-header">
+                                <span style="font-size:0.85rem; color:#2563eb;"><i class="fas fa-bullhorn"></i> Updates</span>
+                                <span style="font-size:0.7rem; background:#e0e0e0; padding:2px 8px; border-radius:20px;">${projectData.updates.length} new</span>
+                            </div>
+                            <div class="updates-list">
+                                ${projectData.updates.slice(0,2).map(u => `<div class="update-item">${u}</div>`).join('')}
+                            </div>
+                            <div class="comment-input-group">
+                                <input type="text" class="comment-input" placeholder="Add comment..." data-id="${p.id}">
+                                <button class="comment-btn" onclick="addComment(${p.id}, this)"><i class="fas fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- pledge strip -->
+                        <div class="pledge-strip">
+                            <span><i class="fas fa-hand-holding-usd"></i> Pledge $100</span>
+                            <button class="quick-pledge" data-id="${p.id}">⚡ boost</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+
+            // quick pledge listeners
+            document.querySelectorAll('.quick-pledge').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = parseInt(this.dataset.id);
+                    const project = projects.find(p => p.id === id);
+                    if (project) {
+                        project.current += 100;
+                        project.backers += 1;
+                        userData.backedProjects.add(id);
+                        userData.totalPledged += 100;
+                        saveUserData();
+                        renderProjects();
+                        updateAllAdvancedFeatures();
+                        showNotification(`✨ $100 pledged to ${project.title}!`);
+                    }
+                });
+            });
+        }
+
+        // comment function
+        window.addComment = function(projectId, btn) {
+            const input = btn.parentElement.querySelector('.comment-input');
+            const comment = input.value.trim();
+            if (comment) {
+                if (!projectUpdates[projectId]) {
+                    projectUpdates[projectId] = { updates: [], comments: [] };
+                }
+                projectUpdates[projectId].comments.push(comment);
+                userData.comments.push({ projectId, comment, date: new Date().toISOString() });
+                input.value = '';
+                renderProjects();
+                saveUserData();
+                showNotification('💬 Comment added!');
+                
+                // Update activity in profile
+                if (currentView === 'profile') {
+                    updateActivity();
+                }
+            }
+        };
+
+        // Update activity in profile
+        function updateActivity() {
+            const activityDiv = document.getElementById('userActivity');
+            if (userData.comments.length === 0 && userData.backedProjects.size === 0) {
+                activityDiv.innerHTML = '<p>No recent activity</p>';
+                return;
+            }
+            
+            let html = '<ul style="list-style: none;">';
+            userData.comments.slice(-3).reverse().forEach(c => {
+                const project = projects.find(p => p.id === c.projectId);
+                html += `<li style="margin-bottom: 10px;">💬 Commented on "${project?.title || 'a project'}": "${c.comment}"</li>`;
+            });
+            html += '</ul>';
+            activityDiv.innerHTML = html;
+        }
+
+        // show notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-bolt" style="color:#2563eb;"></i><div>${message}</div></div>`;
+            document.getElementById('notificationArea').appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // render recommendations
+        function renderRecommendations() {
+            // Don't recommend projects the user has already backed or favorited
+            const excludedIds = new Set([...userData.backedProjects, ...userData.favorites]);
+            const available = projects.filter(p => !excludedIds.has(p.id));
+            
+            const shuffled = [...available].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 4);
+            
+            if (selected.length === 0) {
+                document.getElementById('recommendationsContainer').innerHTML = '<p>No recommendations available</p>';
+                return;
+            }
+            
+            let html = '';
+            selected.forEach(p => {
+                html += `
+                    <div class="recommendation-card">
+                        <img src="${p.image}" alt="${p.title}">
+                        <div class="recommendation-title">${p.title}</div>
+                        <div class="recommendation-amount">$${p.current.toLocaleString()}</div>
+                        <button class="view-btn" onclick="scrollToProject(${p.id})">View Project</button>
+                    </div>
+                `;
+            });
+            document.getElementById('recommendationsContainer').innerHTML = html;
+        }
+
+        // scroll to project
+        window.scrollToProject = function(id) {
+            showView('home');
+            setTimeout(() => {
+                const projectCard = document.querySelector(`.project-card[data-id="${id}"]`);
+                if (projectCard) {
+                    projectCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    projectCard.style.boxShadow = '0 0 0 3px #2563eb';
+                    setTimeout(() => projectCard.style.boxShadow = '', 2000);
+                }
+            }, 100);
+        };
+
+        // export functionality
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            let csv = "Title,Category,Creator,Goal,Current,Backers,Days Left\n";
+            projects.forEach(p => {
+                csv += `"${p.title}","${p.category}","${p.creator}",${p.goal},${p.current},${p.backers},${p.days}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sparksphere_projects.csv';
+            a.click();
+            showNotification('📊 Projects exported to CSV!');
+        });
+
+        // chart functions
+        function updateCategoryChart() {
+            const filtered = getFilteredProjects();
+            const categories = ['Technology','Art','Music','Film','Charity','Business'];
+            const raisedByCat = categories.map(cat => 
+                filtered.filter(p => p.category === cat).reduce((sum, p) => sum + p.current, 0)
+            );
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        data: raisedByCat,
+                        backgroundColor: ['#2563eb','#7c3aed','#db2777','#ea580c','#16a34a','#facc15']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function updateLeaderboard() {
+            const sorted = [...projects].sort((a,b) => b.backers - a.backers).slice(0,5);
+            let html = '';
+            sorted.forEach((p, idx) => {
+                html += `<li class="leaderboard-item"><span><span class="leaderboard-rank">${idx+1}</span> ${p.title.substring(0,18)}…</span><span class="leaderboard-meta">${p.backers} backers</span></li>`;
+            });
+            document.getElementById('leaderboardList').innerHTML = html;
+        }
+
+        function updateSimDropdown() {
+            const select = document.getElementById('simProjectSelect');
+            select.innerHTML = '<option value="">-- select project --</option>';
+            projects.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.title} (${p.category})</option>`;
+            });
+        }
+
+        // simulation logic
+        document.getElementById('simulateBtn').addEventListener('click', function(){
+            const projId = document.getElementById('simProjectSelect').value;
+            if (!projId) { alert('pick a project'); return; }
+            const amount = parseFloat(document.getElementById('simAmount').value) || 0;
+            const project = projects.find(p => p.id == projId);
+            if (!project) return;
+            const newCurrent = project.current + amount;
+            const newPercent = (newCurrent / project.goal * 100).toFixed(1);
+            const risk = newPercent >= 90 ? 'low risk ✅' : (newPercent < 30 ? 'high risk ⚠️' : 'moderate ⚖️');
+            document.getElementById('simOutput').innerHTML = `$${newCurrent.toLocaleString()} / ${newPercent}% (${risk})`;
+        });
+
+        function updateAllAdvancedFeatures() {
+            updateCategoryChart();
+            updateLeaderboard();
+            updateSimDropdown();
+            renderRecommendations();
+        }
+
+        // ----- filter/ search / sort listeners -----
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            if (!btn.id) { // exclude export button
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    renderProjects();
+                    updateCategoryChart();
+                });
+            }
+        });
+        
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            currentSearch = e.target.value;
+            if (currentView === 'home' || currentView === 'search') {
+                renderProjects();
+                updateCategoryChart();
+            }
+        });
+        
+        document.getElementById('sortSelect').addEventListener('change', function(e) {
+            currentSort = e.target.value;
+            renderProjects();
+        });
+
+        // dark mode toggle
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark');
+            this.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Light' : '<i class="fas fa-moon"></i> Dark';
+        });
+
+        // real-time notifications
+        function startNotifications() {
+            notificationInterval = setInterval(() => {
+                const randomProject = projects[Math.floor(Math.random() * projects.length)];
+                const randomAmount = Math.floor(Math.random() * 500) + 100;
+                showNotification(`💰 $${randomAmount} pledged to ${randomProject.title}!`);
+            }, 20000); // every 20 seconds
+        }
+
+        // initial load
+        window.onload = function() {
+            renderProjects();
+            updateAllAdvancedFeatures();
+            updateProfileAndBadges();
+            startNotifications();
+            showView('home');
+        };
+    </script>
+</body>
+</html>
